@@ -7,7 +7,6 @@ public class CarMovement : MonoBehaviour {
 	// http://www.asawicki.info/Mirror/Car%20Physics%20for%20Games/Car%20Physics%20for%20Games.html
 
 	public int carId = 0;
-	public bool hasFlag = false;
 
 	private const float COLLISION_DISTANCE = 5.0f;
 
@@ -29,10 +28,6 @@ public class CarMovement : MonoBehaviour {
 	
 	private const float inertia = 200.0f;
 
-	public float mass = 200.0f;
-
-	//public Vector2 velocity = new Vector2(0.0f, 0.0f);
-
 	public float angularVelocity = 0.0f;
 
 	public float angle = 0.0f;
@@ -41,53 +36,19 @@ public class CarMovement : MonoBehaviour {
 	public float throttle = 0.0f;
 	public float brake = 0.0f;
 
-	public static HashSet<string> collisions = new HashSet<string>();
-
-	/*void OnTriggerEnter(Collider other) {
-		CarMovement otherCar = null;
-		for (int i = 0; i < 4; i++) {
-			if (other.gameObject == getCarObject(i)) {
-				otherCar = getCarScript(i);
-			}
-		}
-		if (otherCar == null) {
-			return;
-		}
-		collisions.Add (carId + "" + otherCar.carId);
-		collisions.Add (otherCar.carId + "" + carId);
-	}
-
-	void OnTriggerExit(Collider other) {
-		CarMovement otherCar = null;
-		for (int i = 0; i < 4; i++) {
-			if (other.gameObject == getCarObject(i)) {
-				otherCar = getCarScript(i);
-			}
-		}
-		if (otherCar == null) {
-			return;
-		}
-		collisions.Remove (carId + "" + otherCar.carId);
-		collisions.Remove (otherCar.carId + "" + carId);
-	}*/
-
 	// Use this for initialization
 	void Start () {
 		if (name.Equals ("Player 1")) {
 			carId = 0;
-			mass = 200;
 		}
 		if (name.Equals ("Player 2")) {
 			carId = 1;
-			mass = 300;
 		}
 		if (name.Equals ("Player 3")) {
 			carId = 2;
-			mass = 250;
 		}
 		if (name.Equals ("Player 4")) {
 			carId = 3;
-			mass = 400;
 		}
 	}
 	
@@ -99,50 +60,34 @@ public class CarMovement : MonoBehaviour {
 		//updateCarBounce ();
 		clambCarToRoad ();
 		updateFlagOwnership ();
-		transform.position = new Vector3 (transform.position.x, Mathf.Max (0.0f, transform.position.y), transform.position.z);
+	}
+
+	void OnTriggerEnter(Collider other) {
+		if (Flag.flagOwner == this) {
+			CarMovement otherCar = (CarMovement)other.gameObject.GetComponent(typeof(CarMovement));
+			Flag.updateOwnership(otherCar);
+		}
 	}
 
 	private void clambCarToRoad()
 	{
 		transform.position = new Vector3(Mathf.Min (Util.screenScaleX, Mathf.Max (-Util.screenScaleX, transform.position.x)),
-		                                 transform.position.y,
+		                                 Mathf.Max (0.0f, transform.position.y),
 		                                 Mathf.Min (Util.screenScaleY, Mathf.Max (-Util.screenScaleY, transform.position.z)));
 	}
 
 	private void updateObstacleBounce()
 	{
-		// Walls
-		/*if (isBeyondLeftBorder(planarVector(transform.position)) && rigidbody.velocity.x < 0.0f) {
-			rigidbody.velocity = new Vector3(-rigidbody.velocity.x * OBSTACLE_BOUNCE_DAMPENING, rigidbody.velocity.y, rigidbody.velocity.z);
-		}
-		if (isBeyondRightBorder(planarVector(transform.position)) && rigidbody.velocity.x > 0.0f) {
-			rigidbody.velocity = new Vector3(-rigidbody.velocity.x * OBSTACLE_BOUNCE_DAMPENING, rigidbody.velocity.y, rigidbody.velocity.z);
-		}
-		if (isBeyondTopBorder(planarVector(transform.position)) && rigidbody.velocity.z < 0.0f) {
-			rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y, -rigidbody.velocity.z * OBSTACLE_BOUNCE_DAMPENING);
-		}
-		if (isBeyondBottomBorder(planarVector(transform.position)) && rigidbody.velocity.z > 0.0f) {
-			rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y, -rigidbody.velocity.z * OBSTACLE_BOUNCE_DAMPENING);
-		}*/
 	}
 
 	private void updateFlagOwnership()
 	{
-		if (Flag.flagOwner == this) {
+		if (Flag.flagOwner != null) {
 			return;
 		}
-
 		GameObject flagObject = GameObject.Find ("Flag");
-		
-		float deltaX = transform.position.x - flagObject.transform.position.x;
-		float deltaZ = transform.position.z - flagObject.transform.position.z;
-		
-		float len = Mathf.Sqrt (deltaX * deltaX + deltaZ * deltaZ);
-		if (len == 0.0f) {
-			return;
-		}
-
-		if (len < FLAG_CAPTURE_DISTANCE) {
+		Vector2 delta = planarVector(transform.position - flagObject.transform.position);
+		if (delta.magnitude < FLAG_CAPTURE_DISTANCE) {
 			Flag.updateOwnership(this);
 		}
 	}
@@ -372,7 +317,7 @@ public class CarMovement : MonoBehaviour {
 		float slipangleRear  = sideslip - rotationAngle;
 
 		// Weight per axle = half car mass times 1G (=9.8m/s^2) 
-		float weight = mass * 9.8f * 0.5f;
+		float weight = rigidbody.mass * 9.8f * 0.5f;
 
 		// Lateral force on front wheels
 		Vector2 latFront = new Vector2 ();
@@ -414,7 +359,7 @@ public class CarMovement : MonoBehaviour {
 		// --- Accelleration ---
 
 		// Longitudinal accelleration
-		Vector2 accel = longForce / mass;
+		Vector2 accel = longForce / rigidbody.mass;
 
 		// Angular acceleration
 		float angularAcceleration = torque / inertia;
