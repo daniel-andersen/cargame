@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Client.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController <ClientDelegate, UIAlertViewDelegate>
 
 @end

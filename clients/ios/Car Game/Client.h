@@ -8,6 +8,22 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Client : NSObject
+@protocol ClientDelegate <NSObject>
+
+- (void)connectionOpened;
+- (void)connectionClosed;
+- (void)connectionError:(NSString *)message;
+
+- (void)receivedMessage:(NSString *)message;
+
+@end
+
+@interface Client : NSObject <NSStreamDelegate>
+
+- (void)initConnection;
+- (void)closeConnection;
+- (void)sendMessage:(NSString *)message;
+
+@property (nonatomic, retain) id<ClientDelegate> delegate;
 
 @end

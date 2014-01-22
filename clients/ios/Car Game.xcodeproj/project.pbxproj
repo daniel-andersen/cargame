@@ -22,6 +22,8 @@
 		6508D87618895097001BFDC1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6508D85518895097001BFDC1 /* UIKit.framework */; };
 		6508D87E18895097001BFDC1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6508D87C18895097001BFDC1 /* InfoPlist.strings */; };
 		6508D88018895097001BFDC1 /* Car_GameTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D87F18895097001BFDC1 /* Car_GameTests.m */; };
+		6508D88B188950CE001BFDC1 /* Client.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D88A188950CE001BFDC1 /* Client.m */; };
+		6508D88D1889649B001BFDC1 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6508D88C1889649B001BFDC1 /* CoreMotion.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +57,9 @@
 		6508D87B18895097001BFDC1 /* Car GameTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Car GameTests-Info.plist"; sourceTree = "<group>"; };
 		6508D87D18895097001BFDC1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6508D87F18895097001BFDC1 /* Car_GameTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Car_GameTests.m; sourceTree = "<group>"; };
+		6508D889188950CE001BFDC1 /* Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Client.h; sourceTree = "<group>"; };
+		6508D88A188950CE001BFDC1 /* Client.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Client.m; sourceTree = "<group>"; };
+		6508D88C1889649B001BFDC1 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6508D88D1889649B001BFDC1 /* CoreMotion.framework in Frameworks */,
 				6508D85418895097001BFDC1 /* CoreGraphics.framework in Frameworks */,
 				6508D85618895097001BFDC1 /* UIKit.framework in Frameworks */,
 				6508D85218895097001BFDC1 /* Foundation.framework in Frameworks */,
@@ -103,6 +109,7 @@
 		6508D85018895097001BFDC1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6508D88C1889649B001BFDC1 /* CoreMotion.framework */,
 				6508D85118895097001BFDC1 /* Foundation.framework */,
 				6508D85318895097001BFDC1 /* CoreGraphics.framework */,
 				6508D85518895097001BFDC1 /* UIKit.framework */,
@@ -122,6 +129,8 @@
 				6508D86A18895097001BFDC1 /* ViewController.m */,
 				6508D86C18895097001BFDC1 /* Images.xcassets */,
 				6508D85818895097001BFDC1 /* Supporting Files */,
+				6508D889188950CE001BFDC1 /* Client.h */,
+				6508D88A188950CE001BFDC1 /* Client.m */,
 			);
 			path = "Car Game";
 			sourceTree = "<group>";
@@ -255,6 +264,7 @@
 			files = (
 				6508D86B18895097001BFDC1 /* ViewController.m in Sources */,
 				6508D86218895097001BFDC1 /* AppDelegate.m in Sources */,
+				6508D88B188950CE001BFDC1 /* Client.m in Sources */,
 				6508D85E18895097001BFDC1 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -395,6 +405,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Car Game/Car Game-Prefix.pch";
 				INFOPLIST_FILE = "Car Game/Car Game-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -408,6 +419,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Car Game/Car Game-Prefix.pch";
 				INFOPLIST_FILE = "Car Game/Car Game-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -474,6 +486,7 @@
 				6508D88518895097001BFDC1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		6508D88618895097001BFDC1 /* Build configuration list for PBXNativeTarget "Car GameTests" */ = {
 			isa = XCConfigurationList;
@@ -482,6 +495,7 @@
 				6508D88818895097001BFDC1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
