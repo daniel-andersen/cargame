@@ -8,7 +8,10 @@ public class CarMovement : MonoBehaviour {
 
 	public int carId = 0;
 
-	private const float FLAG_BURDEN = 0.8f;
+	public static bool hasPlayerController = false;
+
+	private const float FLAG_BURDEN = 0.05f;
+	private const float COMPUTER_BURDEN = 0.1f;
 
 	private const float COLLISION_DISTANCE = 5.0f;
 
@@ -16,6 +19,7 @@ public class CarMovement : MonoBehaviour {
 	private const float OBSTACLE_BOUNCE_DAMPENING = 0.75f;
 
 	private const float TARGET_LOOK_AHEAD_DISTANCE = 30.0f;
+	private const float FLEE_LOOK_AHEAD_DISTANCE = 10.0f;
 
 	private const float FLAG_CAPTURE_DISTANCE = 5.0f;
 
@@ -92,7 +96,7 @@ public class CarMovement : MonoBehaviour {
 		}
 		GameObject baseObject = GameObject.Find ("Base");
 		Vector3 delta = transform.position - baseObject.transform.position;
-		if (delta.magnitude < 10.0f) {
+		if (delta.magnitude < 8.0f) {
 			Flag.bounceFlag();
 		}
 	}
@@ -117,11 +121,11 @@ public class CarMovement : MonoBehaviour {
 				return;
 			}
 		}
-		if (name.Equals ("Player 2"))
+		/*if (name.Equals ("Player 2"))
 		{
 			updateKeyControls ();
 		}
-		else {
+		else */{
 			updateComputerControlledCar ();
 		}
 	}
@@ -146,18 +150,19 @@ public class CarMovement : MonoBehaviour {
 
 	private void updateComputerFlee()
 	{
-		Vector3 carLookAheadPosition = lookAhead (carId);
+		Vector3 carLookAheadPosition = lookAhead (carId, TARGET_LOOK_AHEAD_DISTANCE);
 
 		Vector3 evade = new Vector3 (0.0f, 0.0f, 0.0f);
 
 		// Move towards base
 		GameObject baseObject = GameObject.Find ("Base");
-		evade -= (transform.position - baseObject.transform.position).normalized * 2.0f;
+		//evade -= (transform.position - baseObject.transform.position).normalized * 1.7f;
+		evade -= evadeVector(transform.position, baseObject.transform.position, 64.0f);
 
 		// Flee from enemies
 		for (int i = 0; i < 4; i++) {
 			if (getCarObject(i) != this) {
-				evade += evadeVector(carLookAheadPosition, lookAhead(i), 8.0f);
+				evade += evadeVector(carLookAheadPosition, lookAhead(i, FLEE_LOOK_AHEAD_DISTANCE), 8.0f);
 			}
 		}
 
@@ -210,7 +215,7 @@ public class CarMovement : MonoBehaviour {
 	{
 		Vector3 delta = new Vector3 ();
 		if (Flag.flagOwner != null) {
-			delta = transform.position - lookAhead(Flag.flagOwner.carId);
+			delta = transform.position - lookAhead(Flag.flagOwner.carId, TARGET_LOOK_AHEAD_DISTANCE);
 		} else {
 			GameObject flagObject = GameObject.Find ("Flag");
 			delta = transform.position - flagObject.transform.position;
@@ -394,9 +399,18 @@ public class CarMovement : MonoBehaviour {
 
 		// --- Longitudinal forces  ---
 
+		// Burden
+		float burden = 0.0f;
+		if (Flag.flagOwner == this) {
+			burden = FLAG_BURDEN;
+		}
+		if (hasPlayerController) {
+			burden = COMPUTER_BURDEN;
+		}
+
 		// Traction
 		Vector2 traction = new Vector2 ();
-		traction.x = 150.0f * (Flag.flagOwner == this ? FLAG_BURDEN : 1.0f) * (throttle - (brake * Mathf.Sign(localVelocity.x)));
+		traction.x = 150.0f * (1.0f - burden) * (throttle - (brake * Mathf.Sign(localVelocity.x)));
 		traction.y = 0;
 
 		// Rolling and air resistance
@@ -459,9 +473,9 @@ public class CarMovement : MonoBehaviour {
 		frontRightWheelTransform.localEulerAngles = new Vector3 (0.0f, steeringAngle * 180.0f / Mathf.PI, 0.0f);
 	}
 
-	private Vector3 lookAhead(int index) {
+	private Vector3 lookAhead(int index, float distance) {
 		GameObject carObject = getCarObject (index);
-		Vector3 v = carObject.rigidbody.velocity.normalized * TARGET_LOOK_AHEAD_DISTANCE;
+		Vector3 v = carObject.rigidbody.velocity.normalized * distance;
 		return carObject.transform.position + v;
 	}
 

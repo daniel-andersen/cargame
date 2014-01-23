@@ -61,8 +61,8 @@ public class Flag : MonoBehaviour {
 	public static void randomizePosition()
 	{
 		GameObject flagObject = GameObject.Find ("Flag");
-		float x = Random.Range (-Util.screenScaleX, Util.screenScaleX);
-		float z = Random.Range (-Util.screenScaleY, Util.screenScaleY);
+		float x = Random.Range (-Util.screenScaleX * 0.8f, Util.screenScaleX * 0.8f);
+		float z = Random.Range (-Util.screenScaleY * 0.8f, Util.screenScaleY * 0.8f);
 		flagObject.transform.position = new Vector3 (x, flagObject.transform.position.y, z);
 	}
 }

@@ -68,6 +68,7 @@ public class Server : MonoBehaviour {
 			user.userConnection = sender;
 			user.carId = GetVacantCarId();
 			clients.Add(userName, user);
+			CarMovement.hasPlayerController = true;
 			ReplyToSender("JOIN|" + user.carId, sender);
 			Debug.Log ("Car " + user.carId + " joined!");
 		}
