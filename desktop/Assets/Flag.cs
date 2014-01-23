@@ -33,13 +33,36 @@ public class Flag : MonoBehaviour {
 			flagOwner = car;
 			updatePosition ();
 			flagOwnershipCountdown = OWNERSHIP_COUNTDOWN;
+			updateBaseAlpha ();
 		}
 	}
 
-	public void randomizePosition()
+	public static void bounceFlag()
 	{
+		if (flagOwnershipCountdown == 0 && flagOwner != null) {
+			flagOwner = null;
+			randomizePosition();
+			flagOwnershipCountdown = OWNERSHIP_COUNTDOWN;
+			updateBaseAlpha ();
+		}
+	}
+
+	private static void updateBaseAlpha()
+	{
+		GameObject baseObject = GameObject.Find ("Base");
+		Base baseScript = (Base)baseObject.GetComponent(typeof(Base));
+		if (flagOwner != null) {
+			baseScript.Show();
+		} else {
+			baseScript.Hide ();
+		}
+	}
+
+	public static void randomizePosition()
+	{
+		GameObject flagObject = GameObject.Find ("Flag");
 		float x = Random.Range (-Util.screenScaleX, Util.screenScaleX);
 		float z = Random.Range (-Util.screenScaleY, Util.screenScaleY);
-		transform.position = new Vector3 (x, transform.position.y, z);
+		flagObject.transform.position = new Vector3 (x, flagObject.transform.position.y, z);
 	}
 }

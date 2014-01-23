@@ -8,6 +8,8 @@ public class CarMovement : MonoBehaviour {
 
 	public int carId = 0;
 
+	private const float FLAG_BURDEN = 0.8f;
+
 	private const float COLLISION_DISTANCE = 5.0f;
 
 	private const float OBSTACLE_LOOKAHEAD_DISTANCE = 20.0f;
@@ -18,6 +20,7 @@ public class CarMovement : MonoBehaviour {
 	private const float FLAG_CAPTURE_DISTANCE = 5.0f;
 
 	private const float MAX_STEERING_ANGLE = Mathf.PI / 8.0f;
+	private const float MAX_STEERING_ANGLE_CHANGE = Mathf.PI / 64.0f;
 
 	private const float CA_R = -5.2f; // Cornering stiffness
 	private const float CA_F = -5.0f;
@@ -57,15 +60,17 @@ public class CarMovement : MonoBehaviour {
 		updateControls ();
 		updateCar (Time.deltaTime);
 		updateObstacleBounce ();
-		//updateCarBounce ();
 		clambCarToRoad ();
 		updateFlagOwnership ();
+		updateReachBase ();
 	}
 
 	void OnTriggerEnter(Collider other) {
 		if (Flag.flagOwner == this) {
 			CarMovement otherCar = (CarMovement)other.gameObject.GetComponent(typeof(CarMovement));
-			Flag.updateOwnership(otherCar);
+			if (otherCar != null) {
+				Flag.bounceFlag();
+			}
 		}
 	}
 
@@ -78,6 +83,18 @@ public class CarMovement : MonoBehaviour {
 
 	private void updateObstacleBounce()
 	{
+	}
+
+	private void updateReachBase()
+	{
+		if (Flag.flagOwner == null || Flag.flagOwner != this) {
+			return;
+		}
+		GameObject baseObject = GameObject.Find ("Base");
+		Vector3 delta = transform.position - baseObject.transform.position;
+		if (delta.magnitude < 10.0f) {
+			Flag.bounceFlag();
+		}
 	}
 
 	private void updateFlagOwnership()
@@ -129,27 +146,64 @@ public class CarMovement : MonoBehaviour {
 
 	private void updateComputerFlee()
 	{
+		Vector3 carLookAheadPosition = lookAhead (carId);
+
 		Vector3 evade = new Vector3 (0.0f, 0.0f, 0.0f);
 
+		// Move towards base
+		GameObject baseObject = GameObject.Find ("Base");
+		evade -= (transform.position - baseObject.transform.position).normalized * 2.0f;
+
+		// Flee from enemies
 		for (int i = 0; i < 4; i++) {
 			if (getCarObject(i) != this) {
-				Vector3 delta = lookAhead(carId) - lookAhead(i);
-				float distance = delta.magnitude;
-				if (distance == 0.0f) {
-					continue;
-				}
-				float distanceWeight = 4.0f / distance;
-				evade += delta * distanceWeight;
+				evade += evadeVector(carLookAheadPosition, lookAhead(i), 8.0f);
 			}
 		}
 
+		// Move away test
+		/*evade += evadeVectorSquare(carLookAheadPosition, new Vector3( 20.0f, 0.0f,   0.0f), 50.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(-20.0f, 0.0f,   0.0f), 50.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(  0.0f, 0.0f,  20.0f), 50.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(  0.0f, 0.0f, -20.0f), 50.0f);*/
+
+		// Move away from borders
+		/*Vector3 topBorder = new Vector3 (carLookAheadPosition.x, carLookAheadPosition.y, Util.screenScaleY);
+		Vector3 bottomBorder = new Vector3 (carLookAheadPosition.x, carLookAheadPosition.y, -Util.screenScaleY);
+		Vector3 leftBorder = new Vector3 (-Util.screenScaleX, carLookAheadPosition.y, carLookAheadPosition.z);
+		Vector3 rightBorder = new Vector3 (Util.screenScaleX, carLookAheadPosition.y, carLookAheadPosition.z);
+
+		evade += evadeVectorSquare(carLookAheadPosition, topBorder, 250.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, bottomBorder, 250.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, leftBorder, 250.0f);
+		evade += evadeVectorSquare(carLookAheadPosition, rightBorder, 250.0f);*/
+
+		// Calculate angle
 		float destAngle = -Mathf.Atan2 (-evade.z, -evade.x) + (Mathf.PI + Mathf.PI / 2.0f);
 		destAngle = clampAngle (destAngle);
 
-		destAngle = accountForObstacles (destAngle, true);
+		destAngle = accountForObstacles (destAngle);
 
 		steerTowardsAngle (destAngle);
 		throttle = 80.0f;
+	}
+
+	private Vector3 evadeVector(Vector3 position, Vector3 targetPosition, float distanceWeight) {
+		Vector3 delta = position - targetPosition;
+		if (delta.magnitude == 0.0f) {
+			return new Vector3(0.0f, 0.0f, 0.0f);
+		} else {
+			return delta.normalized * (distanceWeight / delta.magnitude);
+		}
+	}
+
+	private Vector3 evadeVectorSquare(Vector3 position, Vector3 targetPosition, float distanceWeight) {
+		Vector3 delta = position - targetPosition;
+		if (delta.magnitude == 0.0f) {
+			return new Vector3(0.0f, 0.0f, 0.0f);
+		} else {
+			return delta.normalized * (distanceWeight / (delta.magnitude * delta.magnitude));
+		}
 	}
 
 	private void updateComputerCatchFlag()
@@ -193,32 +247,32 @@ public class CarMovement : MonoBehaviour {
 			closestAngle = destAngle;
 		}
 
-		steeringAngle = Mathf.Min (Mathf.PI / 8.0f, Mathf.Max (-Mathf.PI / 8.0f, closestAngle - angle));
+		steeringAngle = Mathf.Min (MAX_STEERING_ANGLE, Mathf.Max (-MAX_STEERING_ANGLE, closestAngle - angle));
 	}
 
-	private float accountForObstacles(float destAngle, bool accountForBorders)
+	private float accountForObstacles(float destAngle)
 	{
 		for (float deltaAngle = 0.0f; deltaAngle < Mathf.PI; deltaAngle += Mathf.PI / 32.0f) {
 			float a1 = destAngle + deltaAngle;
-			if (!hasObstacleAtDestAngle(a1, accountForBorders, deltaAngle == 0.0f)) {
+			if (!hasObstacleAtDestAngle(a1)) {
 				return a1;
 			}
 			float a2 = destAngle - deltaAngle;
-			if (!hasObstacleAtDestAngle(a2, accountForBorders, false)) {
+			if (!hasObstacleAtDestAngle(a2)) {
 				return a2;
 			}
 		}
 		return destAngle;
 	}
 
-	private bool hasObstacleAtDestAngle(float destAngle, bool accountForBorders, bool log)
+	private bool hasObstacleAtDestAngle(float destAngle)
 	{
-		float adjustedAngle = -destAngle + Mathf.PI / 2.0f;
+		/*float adjustedAngle = -destAngle + Mathf.PI / 2.0f;
 
 		Vector2 destPosition = new Vector2 (transform.position.x + Mathf.Cos (adjustedAngle) * TARGET_LOOK_AHEAD_DISTANCE,
-		                                    transform.position.z + Mathf.Sin (adjustedAngle) * TARGET_LOOK_AHEAD_DISTANCE);
+		                                    transform.position.z + Mathf.Sin (adjustedAngle) * TARGET_LOOK_AHEAD_DISTANCE);*/
 
-		if (accountForBorders) {
+		/*if (accountForBorders) {
 			if (Mathf.Cos (adjustedAngle) > 0.0f && isBeyondRightBorder(destPosition))
 			{
 				return true;
@@ -235,7 +289,7 @@ public class CarMovement : MonoBehaviour {
 			{
 				return true;
 			}
-		}
+		}*/
 
 		return false;
 	}
@@ -279,11 +333,11 @@ public class CarMovement : MonoBehaviour {
 
 		if (Input.GetKey (KeyCode.A))
 		{
-			steeringAngle = Mathf.Max (-Mathf.PI / 8.0f, steeringAngle - Mathf.PI / 64.0f);
+			steeringAngle = Mathf.Max (-MAX_STEERING_ANGLE, steeringAngle - Mathf.PI / 64.0f);
 		}
 		else if (Input.GetKey (KeyCode.D))
 		{
-			steeringAngle = Mathf.Min ( Mathf.PI / 8.0f, steeringAngle + Mathf.PI / 64.0f);
+			steeringAngle = Mathf.Min ( MAX_STEERING_ANGLE, steeringAngle + Mathf.PI / 64.0f);
 		}
 		else
 		{
@@ -342,7 +396,7 @@ public class CarMovement : MonoBehaviour {
 
 		// Traction
 		Vector2 traction = new Vector2 ();
-		traction.x = 100.0f * (throttle - (brake * Mathf.Sign(localVelocity.x)));
+		traction.x = 150.0f * (Flag.flagOwner == this ? FLAG_BURDEN : 1.0f) * (throttle - (brake * Mathf.Sign(localVelocity.x)));
 		traction.y = 0;
 
 		// Rolling and air resistance
@@ -375,9 +429,6 @@ public class CarMovement : MonoBehaviour {
 		// Integrated velocity
 		rigidbody.velocity += accelWorldCoord * timeDelta;
 
-		// Integrated position
-		transform.position += rigidbody.velocity * timeDelta;
-
 		// --- Angular velocity and heading ---
 		
 		// Integrated angular velocity
@@ -395,8 +446,9 @@ public class CarMovement : MonoBehaviour {
 		// --- Car visual ---
 		
 		// Body rotation
+		transform.localEulerAngles = new Vector3 (0.0f, angle * 180.0f / Mathf.PI, 0.0f);
+
 		Transform bodyTransform = transform.Find("Car");
-		bodyTransform.localEulerAngles = new Vector3 (0.0f, angle * 180.0f / Mathf.PI, 0.0f);
 
 		// Front left wheel rotation
 		Transform frontLeftWheelTransform = bodyTransform.Find("Front Wheel Left");
