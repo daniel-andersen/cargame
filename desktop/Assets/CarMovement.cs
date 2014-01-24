@@ -165,9 +165,9 @@ public class CarMovement : MonoBehaviour {
 		} /*else if (name.Equals ("Player 2"))
 		{
 			updateKeyControls ();
-		}*/ else {
+		} else {
 			updateComputerControlledCar ();
-		}
+		}*/
 	}
 
 	private void updatePhoneControls(User user)
