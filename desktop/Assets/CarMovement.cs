@@ -26,12 +26,12 @@ public class CarMovement : MonoBehaviour {
 	private const float MAX_STEERING_ANGLE = Mathf.PI / 8.0f;
 	private const float MAX_STEERING_ANGLE_CHANGE = Mathf.PI / 64.0f;
 
-	private const float CA_R = -5.2f; // Cornering stiffness
-	private const float CA_F = -5.0f;
-	private const float MAX_GRIP = 7.0f;
+	private float CA_R = -5.2f; // Cornering stiffness
+	private float CA_F = -5.0f;
+	private float MAX_GRIP = 7.0f;
 
-	private const float dragConst = 5.0f;
-	private const float rollingResistanceConst = 30.0f;
+	private float dragConst = 5.0f;
+	private float rollingResistanceConst = 30.0f;
 	
 	private const float inertia = 200.0f;
 
@@ -42,6 +42,8 @@ public class CarMovement : MonoBehaviour {
 
 	public float throttle = 0.0f;
 	public float brake = 0.0f;
+
+	public int score = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -96,9 +98,51 @@ public class CarMovement : MonoBehaviour {
 		}
 		GameObject baseObject = GameObject.Find ("Base");
 		Vector3 delta = transform.position - baseObject.transform.position;
-		if (delta.magnitude < 8.0f) {
-			Flag.bounceFlag();
+		if (delta.magnitude < 10.0f) {
+			Flag.randomizePosition();
+			Flag.flagOwner = null;
+			addScore();
+			User user = Server.getUserWithCarId(carId);
+			if (user != null) {
+				GameObject serverObject = GameObject.Find ("Server");
+				Server server = (Server)serverObject.GetComponent(typeof(Server));
+				server.sendMessageToUser("REACHED_BASE_WITH_FLAG", user);
+			}
 		}
+	}
+
+	private void addScore()
+	{
+		score++;
+
+		float offset = (score - 1) * 5.0f;
+		float borderDist = 0.0f;
+		float rotation = 0.0f;
+
+		Vector3 position = new Vector3 (0.0f, 5.0f, 0.0f);
+		if (carId == 0) {
+			position = new Vector3 (-Util.screenScaleX + borderDist + offset, 5.0f, Util.screenScaleY - borderDist);
+			rotation = 45.0f + (90.0f * 0.0f);
+		}
+		if (carId == 1) {
+			position = new Vector3 (Util.screenScaleX - borderDist - offset, 5.0f, Util.screenScaleY - borderDist);
+			rotation = 45.0f + (90.0f * 0.0f);
+		}
+		if (carId == 2) {
+			position = new Vector3 (-Util.screenScaleX + borderDist + offset, 5.0f, -Util.screenScaleY + borderDist);
+			rotation = 45.0f + (90.0f * 0.0f);
+		}
+		if (carId == 3) {
+			position = new Vector3 (Util.screenScaleX - borderDist - offset, 5.0f, -Util.screenScaleY + borderDist);
+			rotation = 45.0f + (90.0f * 0.0f);
+		}
+
+		GameObject flag = GameObject.Find ("Flag " + (carId + 1));
+		GameObject clone = Instantiate (flag, position, Quaternion.identity) as GameObject;
+		clone.renderer.enabled = true;
+		clone.transform.position = position;
+		clone.transform.localEulerAngles = new Vector3 (90.0f, rotation, 0.0f);
+		clone.renderer.material.color = new Vector4 (clone.renderer.material.color.r, clone.renderer.material.color.g, clone.renderer.material.color.b, 0.3f);
 	}
 
 	private void updateFlagOwnership()
@@ -115,17 +159,13 @@ public class CarMovement : MonoBehaviour {
 
 	private void updateControls ()
 	{
-		foreach (User user in Server.clients.Values) {
-			if (user.carId == carId) {
-				updatePhoneControls(user);
-				return;
-			}
-		}
-		/*if (name.Equals ("Player 2"))
+		User user = Server.getUserWithCarId (carId);
+		if (user != null) {
+			updatePhoneControls(user);
+		} /*else if (name.Equals ("Player 2"))
 		{
 			updateKeyControls ();
-		}
-		else */{
+		}*/ else {
 			updateComputerControlledCar ();
 		}
 	}
@@ -404,7 +444,7 @@ public class CarMovement : MonoBehaviour {
 		if (Flag.flagOwner == this) {
 			burden = FLAG_BURDEN;
 		}
-		if (hasPlayerController) {
+		if (hasPlayerController && Server.getUserWithCarId(carId) == null) {
 			burden = COMPUTER_BURDEN;
 		}
 

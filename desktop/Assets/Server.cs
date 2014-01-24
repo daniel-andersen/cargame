@@ -52,6 +52,16 @@ public class Server : MonoBehaviour {
 		}
 	}
 
+	public static User getUserWithCarId(int carId)
+	{
+		foreach (User user in clients.Values) {
+			if (user.carId == carId) {
+				return user;
+			}
+		}
+		return null;
+	}
+
 	private void ConnectUser(string userName, UserConnection sender)
 	{
 		Debug.Log ("Connecting user: " + userName);
@@ -85,6 +95,11 @@ public class Server : MonoBehaviour {
 		{
 			user.userConnection.SendData(strMessage);
 		}
+	}
+
+	public void sendMessageToUser(string strMessage, User user)
+	{
+		user.userConnection.SendData(strMessage);
 	}
 
 	private void ReplyToSender(string strMessage, UserConnection sender)

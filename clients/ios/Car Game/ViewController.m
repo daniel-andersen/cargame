@@ -38,12 +38,14 @@
 }
 
 - (void)connectionPoll {
-    NSLog(@"Connection poll...");
-    if (client == nil) {
-        client = [[Client alloc] init];
-        client.delegate = self;
+    @synchronized (self) {
+        NSLog(@"Connection poll...");
+        if (client == nil) {
+            client = [[Client alloc] init];
+            client.delegate = self;
+        }
+        [client initConnection];
     }
-    [client initConnection];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -81,9 +83,22 @@
     if ([@"READY" isEqualToString:[messageArray objectAtIndex:0]]) {
         [self sendCoords];
     }
+    if ([@"REACHED_BASE_WITH_FLAG" isEqualToString:[messageArray objectAtIndex:0]]) {
+        [self reachedBaseWithFlag];
+    }
+}
+
+- (void)reachedBaseWithFlag {
+    NSLog(@"Reached base with flag!");
+    self.view.backgroundColor = [UIColor yellowColor];
+    [UIView animateWithDuration:1.0f animations:^{
+        self.view.backgroundColor = [UIColor blackColor];
+    }];
+    [self sendCoords];
 }
 
 - (void)joined {
+    NSLog(@"Joined!");
     joined = YES;
     self.view.backgroundColor = [UIColor whiteColor];
     [UIView animateWithDuration:1.0f animations:^{

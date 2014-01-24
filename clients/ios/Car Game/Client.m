@@ -9,7 +9,7 @@
 #import "Client.h"
 
 #define PORT_NUMBER 20021
-#define IP_ADDRESS @"10.0.1.5"
+#define IP_ADDRESS @"192.168.1.110"
 
 @interface Client () {
     CFReadStreamRef readStream;
@@ -100,14 +100,14 @@
  			break;
             
 		default:
-            NSLog(@"Unknown event code: %i", eventCode);
+            NSLog(@"Unknown event code: %i", (int)eventCode);
             break;
 	}
 }
 
 - (void)handleInput {
     uint8_t buffer[1024];
-    int len;
+    long len;
     
     while ([self.inputStream hasBytesAvailable]) {
         len = [self.inputStream read:buffer maxLength:sizeof(buffer)];
