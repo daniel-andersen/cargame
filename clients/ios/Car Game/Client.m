@@ -9,7 +9,7 @@
 #import "Client.h"
 
 #define PORT_NUMBER 20021
-#define IP_ADDRESS @"192.168.1.110"
+#define IP_ADDRESS @"10.0.1.2"
 
 @interface Client () {
     CFReadStreamRef readStream;
