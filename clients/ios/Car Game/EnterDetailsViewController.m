@@ -31,7 +31,6 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [self.ipAddressTextField resignFirstResponder];
-    [self performSegueWithIdentifier:@"enterDetailsToGameSegue" sender:self];
     return YES;
 }
 

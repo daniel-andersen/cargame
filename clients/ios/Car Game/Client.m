@@ -25,6 +25,7 @@
 @implementation Client
 
 - (void)initConnectionWithIpAddress:(NSString *)ipAddress {
+    NSLog(@"Opening connection...");
     self.ready = NO;
     self.ipAddress = ipAddress;
     

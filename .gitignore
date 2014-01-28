@@ -8,6 +8,7 @@ Temp/
 Obj/
 UnityGenerated/
 Library/
+desktop/ProjectSettings/*.asset
 
 # ===================================== #
 # Visual Studio / MonoDevelop generated #

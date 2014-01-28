@@ -18,6 +18,8 @@
     CMMotionManager *motionManager;
     bool joined;
     NSTimer *connectionPollTimer;
+    bool viewPressed;
+    NSArray *touches;
 }
 
 @end
@@ -30,6 +32,8 @@
     client = nil;
     joined = NO;
     clientId = [self uniqueId];
+
+    viewPressed = NO;
     
     motionManager = [[CMMotionManager alloc] init];
     [motionManager startDeviceMotionUpdates];
@@ -65,6 +69,7 @@
 }
 
 - (void)connectionError:(NSString *)message {
+    NSLog(@"Connection error: %@", message);
     if (joined) {
         [self showExitDialogBoxWithTitle:@"Connection closed" message:@"Connection to server closed. Exiting..."];
     }
@@ -113,12 +118,16 @@
 }
 
 - (float)calculateThrottle {
-    if (motionManager.deviceMotion.attitude.roll >= -M_PI / 2.0f && motionManager.deviceMotion.attitude.roll < 0.0f) {
-        return 100.0f * ((M_PI / 2.0f) - (-motionManager.deviceMotion.attitude.roll));
-    } else if (motionManager.deviceMotion.attitude.roll >= -M_PI && motionManager.deviceMotion.attitude.roll < -(M_PI / 2.0f) - BACKWARDS_DIAMETER) {
-        return -50.0f;
+    if (viewPressed) {
+        return [touches count] == 1 ? 100.0f : -50.0f;
     } else {
-        return 0.0f;
+        if (motionManager.deviceMotion.attitude.roll >= -M_PI / 2.0f && motionManager.deviceMotion.attitude.roll < 0.0f) {
+            return 100.0f * ((M_PI / 2.0f) - (-motionManager.deviceMotion.attitude.roll));
+        } else if (motionManager.deviceMotion.attitude.roll >= -M_PI && motionManager.deviceMotion.attitude.roll < -(M_PI / 2.0f) - BACKWARDS_DIAMETER) {
+            return -50.0f;
+        } else {
+            return 0.0f;
+        }
     }
 }
 
@@ -136,6 +145,19 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     exit(0);
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    viewPressed = YES;
+    touches = [touches allObjects];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    viewPressed = NO;
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    viewPressed = NO;
 }
 
 @end

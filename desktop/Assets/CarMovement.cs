@@ -110,7 +110,7 @@ public class CarMovement : MonoBehaviour {
 		score++;
 
 		float offset = (score - 1) * 5.0f;
-		float borderDist = 0.0f;
+		float borderDist = 5.0f;
 		float rotation = 0.0f;
 
 		Vector3 position = new Vector3 (0.0f, 5.0f, 0.0f);
@@ -156,10 +156,10 @@ public class CarMovement : MonoBehaviour {
 		User user = Server.getUserWithCarId (carId);
 		if (user != null) {
 			updatePhoneControls(user);
-		} else if (name.Equals ("Player 2"))
+		} /*else if (name.Equals ("Player 2"))
 		{
 			updateKeyControls ();
-		} else {
+		} */else {
 			updateComputerControlledCar ();
 		}
 	}
