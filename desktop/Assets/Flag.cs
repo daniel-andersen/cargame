@@ -3,10 +3,9 @@ using System.Collections;
 
 public class Flag : MonoBehaviour {
 
-	public static int OWNERSHIP_COUNTDOWN = 50;
-
+	public static int flagOwnershipCountMin = 100;
+	public static int flagOwnershipCount = 0;
 	public static CarMovement flagOwner = null;
-	public static int flagOwnershipCountdown = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -15,8 +14,10 @@ public class Flag : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (flagOwner != null) {
+			flagOwnershipCount++;
+		}
 		updatePosition ();
-		flagOwnershipCountdown = Mathf.Max (0, flagOwnershipCountdown - 1);
 	}
 
 	private static void updatePosition()
@@ -29,20 +30,17 @@ public class Flag : MonoBehaviour {
 
 	public static void updateOwnership(CarMovement car)
 	{
-		if (flagOwnershipCountdown == 0) {
-			flagOwner = car;
-			updatePosition ();
-			flagOwnershipCountdown = OWNERSHIP_COUNTDOWN;
-			updateBaseAlpha ();
-		}
+		flagOwnershipCount = 0;
+		flagOwner = car;
+		updatePosition ();
+		updateBaseAlpha ();
 	}
 
 	public static void bounceFlag()
 	{
-		if (flagOwnershipCountdown == 0 && flagOwner != null) {
+		if (flagOwner != null) {
 			flagOwner = null;
 			randomizePosition();
-			flagOwnershipCountdown = OWNERSHIP_COUNTDOWN;
 			updateBaseAlpha ();
 		}
 	}
@@ -61,8 +59,27 @@ public class Flag : MonoBehaviour {
 	public static void randomizePosition()
 	{
 		GameObject flagObject = GameObject.Find ("Flag");
-		float x = Random.Range (-Util.screenScaleX * 0.8f, Util.screenScaleX * 0.8f);
-		float z = Random.Range (-Util.screenScaleY * 0.8f, Util.screenScaleY * 0.8f);
-		flagObject.transform.position = new Vector3 (x, flagObject.transform.position.y, z);
+
+		for (int i = 0; i < 10; i++) {
+			float x = Random.Range (-Util.screenScaleX * 0.6f, Util.screenScaleX * 0.6f);
+			float z = Random.Range (-Util.screenScaleY * 0.6f, Util.screenScaleY * 0.6f);
+
+			flagObject.transform.position = new Vector3 (x, flagObject.transform.position.y, z);
+
+			bool obstacleNearby = false;
+
+			for (int j = 0; j < ATrackObject.objectCount; j++) {
+				GameObject obstacle = GameObject.Find ("ATrack Object " + (j + 1));
+				
+				Vector3 delta = flagObject.transform.position - obstacle.transform.position;
+				if (delta.magnitude < obstacle.transform.localScale.magnitude) {
+					obstacleNearby = true;
+				}
+			}
+
+			if (!obstacleNearby) {
+				return;
+			}
+		}
 	}
 }

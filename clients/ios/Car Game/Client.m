@@ -9,25 +9,26 @@
 #import "Client.h"
 
 #define PORT_NUMBER 20021
-#define IP_ADDRESS @"10.0.1.2"
 
 @interface Client () {
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
-    bool ready;
 }
 
 @property (nonatomic, retain) NSInputStream *inputStream;
 @property (nonatomic, retain) NSOutputStream *outputStream;
+@property (nonatomic, retain) NSString *ipAddress;
+@property (nonatomic, assign) bool ready;
 
 @end
 
 @implementation Client
 
-- (void)initConnection {
-    ready = NO;
+- (void)initConnectionWithIpAddress:(NSString *)ipAddress {
+    self.ready = NO;
+    self.ipAddress = ipAddress;
     
-    CFStreamCreatePairWithSocketToHost(NULL, (CFStringRef)IP_ADDRESS, PORT_NUMBER, &readStream, &writeStream);
+    CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)self.ipAddress, PORT_NUMBER, &readStream, &writeStream);
 
     self.inputStream = (__bridge NSInputStream *)readStream;
     self.outputStream = (__bridge NSOutputStream *)writeStream;
@@ -57,7 +58,7 @@
     self.inputStream = nil;
     self.outputStream = nil;
     
-    ready = NO;
+    self.ready = NO;
 
     [self.delegate connectionClosed];
 }
@@ -73,9 +74,9 @@
     
     switch (eventCode) {
         case NSStreamEventHasSpaceAvailable: {
-			if(aStream == self.outputStream && !ready) {
+			if(aStream == self.outputStream && !self.ready) {
 				NSLog(@"Outputstream is ready.");
-                ready = YES;
+                self.ready = YES;
                 [self.delegate connectionOpened];
 			}
 			break;

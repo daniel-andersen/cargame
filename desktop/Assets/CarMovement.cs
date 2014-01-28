@@ -10,24 +10,24 @@ public class CarMovement : MonoBehaviour {
 
 	public static bool hasPlayerController = false;
 
-	private const float FLAG_BURDEN = 0.05f;
-	private const float COMPUTER_BURDEN = 0.1f;
+	private const float COMPUTER_FLAG_BURDEN = 0.1f;
+	private const float COMPUTER_VS_PLAYER_BURDEN = 0.2f;
 
 	private const float COLLISION_DISTANCE = 5.0f;
 
-	private const float OBSTACLE_LOOKAHEAD_DISTANCE = 20.0f;
+	private const float OBSTACLE_LOOKAHEAD_DISTANCE = 30.0f;
 	private const float OBSTACLE_BOUNCE_DAMPENING = 0.75f;
 
 	private const float TARGET_LOOK_AHEAD_DISTANCE = 30.0f;
-	private const float FLEE_LOOK_AHEAD_DISTANCE = 10.0f;
+	private const float FLEE_LOOK_AHEAD_DISTANCE = 20.0f;
 
 	private const float FLAG_CAPTURE_DISTANCE = 5.0f;
 
-	private const float MAX_STEERING_ANGLE = Mathf.PI / 8.0f;
+	private const float MAX_STEERING_ANGLE = Mathf.PI / 12.0f;
 	private const float MAX_STEERING_ANGLE_CHANGE = Mathf.PI / 64.0f;
 
-	private float CA_R = -5.2f; // Cornering stiffness
-	private float CA_F = -5.0f;
+	private float CA_R = -12.2f; // Cornering stiffness
+	private float CA_F = -10.0f;
 	private float MAX_GRIP = 7.0f;
 
 	private float dragConst = 5.0f;
@@ -65,17 +65,16 @@ public class CarMovement : MonoBehaviour {
 	void Update () {
 		updateControls ();
 		updateCar (Time.deltaTime);
-		updateObstacleBounce ();
 		clambCarToRoad ();
 		updateFlagOwnership ();
 		updateReachBase ();
 	}
 
 	void OnTriggerEnter(Collider other) {
-		if (Flag.flagOwner == this) {
+		if (Flag.flagOwner == this && Flag.flagOwnershipCount >= Flag.flagOwnershipCountMin) {
 			CarMovement otherCar = (CarMovement)other.gameObject.GetComponent(typeof(CarMovement));
 			if (otherCar != null) {
-				Flag.bounceFlag();
+				Flag.updateOwnership(otherCar);
 			}
 		}
 	}
@@ -87,10 +86,6 @@ public class CarMovement : MonoBehaviour {
 		                                 Mathf.Min (Util.screenScaleY, Mathf.Max (-Util.screenScaleY, transform.position.z)));
 	}
 
-	private void updateObstacleBounce()
-	{
-	}
-
 	private void updateReachBase()
 	{
 		if (Flag.flagOwner == null || Flag.flagOwner != this) {
@@ -99,15 +94,14 @@ public class CarMovement : MonoBehaviour {
 		GameObject baseObject = GameObject.Find ("Base");
 		Vector3 delta = transform.position - baseObject.transform.position;
 		if (delta.magnitude < 10.0f) {
-			Flag.randomizePosition();
-			Flag.flagOwner = null;
+			Flag.bounceFlag();
 			addScore();
-			User user = Server.getUserWithCarId(carId);
+			/*User user = Server.getUserWithCarId(carId);
 			if (user != null) {
 				GameObject serverObject = GameObject.Find ("Server");
 				Server server = (Server)serverObject.GetComponent(typeof(Server));
 				server.sendMessageToUser("REACHED_BASE_WITH_FLAG", user);
-			}
+			}*/
 		}
 	}
 
@@ -142,7 +136,7 @@ public class CarMovement : MonoBehaviour {
 		clone.renderer.enabled = true;
 		clone.transform.position = position;
 		clone.transform.localEulerAngles = new Vector3 (90.0f, rotation, 0.0f);
-		clone.renderer.material.color = new Vector4 (clone.renderer.material.color.r, clone.renderer.material.color.g, clone.renderer.material.color.b, 0.3f);
+		//clone.renderer.material.color = new Vector4 (clone.renderer.material.color.r, clone.renderer.material.color.g, clone.renderer.material.color.b, 0.3f);
 	}
 
 	private void updateFlagOwnership()
@@ -162,12 +156,12 @@ public class CarMovement : MonoBehaviour {
 		User user = Server.getUserWithCarId (carId);
 		if (user != null) {
 			updatePhoneControls(user);
-		} /*else if (name.Equals ("Player 2"))
+		} else if (name.Equals ("Player 2"))
 		{
 			updateKeyControls ();
 		} else {
 			updateComputerControlledCar ();
-		}*/
+		}
 	}
 
 	private void updatePhoneControls(User user)
@@ -182,8 +176,7 @@ public class CarMovement : MonoBehaviour {
 		if (Flag.flagOwner == this) {
 			updateComputerFlee();
 		}
-		else
-		{
+		else {
 			updateComputerCatchFlag();
 		}
 	}
@@ -196,8 +189,7 @@ public class CarMovement : MonoBehaviour {
 
 		// Move towards base
 		GameObject baseObject = GameObject.Find ("Base");
-		//evade -= (transform.position - baseObject.transform.position).normalized * 1.7f;
-		evade -= evadeVector(transform.position, baseObject.transform.position, 64.0f);
+		evade -= evadeVector(transform.position, baseObject.transform.position, 128.0f);
 
 		// Flee from enemies
 		for (int i = 0; i < 4; i++) {
@@ -206,28 +198,9 @@ public class CarMovement : MonoBehaviour {
 			}
 		}
 
-		// Move away test
-		/*evade += evadeVectorSquare(carLookAheadPosition, new Vector3( 20.0f, 0.0f,   0.0f), 50.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(-20.0f, 0.0f,   0.0f), 50.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(  0.0f, 0.0f,  20.0f), 50.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, new Vector3(  0.0f, 0.0f, -20.0f), 50.0f);*/
-
-		// Move away from borders
-		/*Vector3 topBorder = new Vector3 (carLookAheadPosition.x, carLookAheadPosition.y, Util.screenScaleY);
-		Vector3 bottomBorder = new Vector3 (carLookAheadPosition.x, carLookAheadPosition.y, -Util.screenScaleY);
-		Vector3 leftBorder = new Vector3 (-Util.screenScaleX, carLookAheadPosition.y, carLookAheadPosition.z);
-		Vector3 rightBorder = new Vector3 (Util.screenScaleX, carLookAheadPosition.y, carLookAheadPosition.z);
-
-		evade += evadeVectorSquare(carLookAheadPosition, topBorder, 250.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, bottomBorder, 250.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, leftBorder, 250.0f);
-		evade += evadeVectorSquare(carLookAheadPosition, rightBorder, 250.0f);*/
-
 		// Calculate angle
 		float destAngle = -Mathf.Atan2 (-evade.z, -evade.x) + (Mathf.PI + Mathf.PI / 2.0f);
-		destAngle = clampAngle (destAngle);
-
-		destAngle = accountForObstacles (destAngle);
+		destAngle = clampAngle (accountForObstacles (destAngle));
 
 		steerTowardsAngle (destAngle);
 		throttle = 80.0f;
@@ -262,7 +235,7 @@ public class CarMovement : MonoBehaviour {
 		}
 
 		float destAngle = -Mathf.Atan2 (delta.z, delta.x) + (Mathf.PI + Mathf.PI / 2.0f);
-		destAngle = clampAngle (destAngle);
+		destAngle = clampAngle (accountForObstacles (destAngle));
 
 		steerTowardsAngle (destAngle);
 		throttle = 100.0f;
@@ -292,12 +265,21 @@ public class CarMovement : MonoBehaviour {
 			closestAngle = destAngle;
 		}
 
+		float oldSteeringAngle = steeringAngle;
 		steeringAngle = Mathf.Min (MAX_STEERING_ANGLE, Mathf.Max (-MAX_STEERING_ANGLE, closestAngle - angle));
+
+		/*if (Mathf.Abs(oldSteeringAngle - steeringAngle) > MAX_STEERING_ANGLE_CHANGE) {
+			if (steeringAngle < oldSteeringAngle) {
+				steeringAngle = oldSteeringAngle - MAX_STEERING_ANGLE_CHANGE;
+			} else {
+				steeringAngle = oldSteeringAngle + MAX_STEERING_ANGLE_CHANGE;
+			}
+		}*/
 	}
 
 	private float accountForObstacles(float destAngle)
 	{
-		for (float deltaAngle = 0.0f; deltaAngle < Mathf.PI; deltaAngle += Mathf.PI / 32.0f) {
+		for (float deltaAngle = 0.0f; deltaAngle < Mathf.PI / 2.0f; deltaAngle += Mathf.PI / 32.0f) {
 			float a1 = destAngle + deltaAngle;
 			if (!hasObstacleAtDestAngle(a1)) {
 				return a1;
@@ -312,10 +294,25 @@ public class CarMovement : MonoBehaviour {
 
 	private bool hasObstacleAtDestAngle(float destAngle)
 	{
-		/*float adjustedAngle = -destAngle + Mathf.PI / 2.0f;
+		for (int j = 0; j < ATrackObject.objectCount; j++) {
+			GameObject obstacle = GameObject.Find ("ATrack Object " + (j + 1));
+			ATrackObject obstacleScript = (ATrackObject)obstacle.GetComponent(typeof(ATrackObject));
+			if (!obstacleScript.recognized) {
+				continue;
+			}
+			for (float d = 0.0f; d <= OBSTACLE_LOOKAHEAD_DISTANCE; d += OBSTACLE_LOOKAHEAD_DISTANCE / 8.0f) {
+				float adjustedAngle = -destAngle + Mathf.PI / 2.0f;
 
-		Vector2 destPosition = new Vector2 (transform.position.x + Mathf.Cos (adjustedAngle) * TARGET_LOOK_AHEAD_DISTANCE,
-		                                    transform.position.z + Mathf.Sin (adjustedAngle) * TARGET_LOOK_AHEAD_DISTANCE);*/
+				Vector3 destPosition = new Vector3 (transform.position.x + Mathf.Cos (adjustedAngle) * d,
+				                                    transform.position.y,
+				                                    transform.position.z + Mathf.Sin (adjustedAngle) * d);
+
+				Vector3 delta = destPosition - obstacle.transform.position;
+				if (delta.magnitude < obstacle.transform.localScale.magnitude) {
+					return true;
+				}
+			}
+		}
 
 		/*if (accountForBorders) {
 			if (Mathf.Cos (adjustedAngle) > 0.0f && isBeyondRightBorder(destPosition))
@@ -378,11 +375,11 @@ public class CarMovement : MonoBehaviour {
 
 		if (Input.GetKey (KeyCode.A))
 		{
-			steeringAngle = Mathf.Max (-MAX_STEERING_ANGLE, steeringAngle - Mathf.PI / 64.0f);
+			steeringAngle = Mathf.Max (-MAX_STEERING_ANGLE, steeringAngle - MAX_STEERING_ANGLE_CHANGE);
 		}
 		else if (Input.GetKey (KeyCode.D))
 		{
-			steeringAngle = Mathf.Min ( MAX_STEERING_ANGLE, steeringAngle + Mathf.PI / 64.0f);
+			steeringAngle = Mathf.Min ( MAX_STEERING_ANGLE, steeringAngle + MAX_STEERING_ANGLE_CHANGE);
 		}
 		else
 		{
@@ -441,11 +438,11 @@ public class CarMovement : MonoBehaviour {
 
 		// Burden
 		float burden = 0.0f;
-		if (Flag.flagOwner == this) {
-			burden = FLAG_BURDEN;
+		if (Flag.flagOwner == this && Server.getUserWithCarId (carId) == null) {
+			burden = COMPUTER_FLAG_BURDEN;
 		}
 		if (hasPlayerController && Server.getUserWithCarId(carId) == null) {
-			burden = COMPUTER_BURDEN;
+			burden = COMPUTER_VS_PLAYER_BURDEN;
 		}
 
 		// Traction
@@ -515,7 +512,7 @@ public class CarMovement : MonoBehaviour {
 
 	private Vector3 lookAhead(int index, float distance) {
 		GameObject carObject = getCarObject (index);
-		Vector3 v = carObject.rigidbody.velocity.normalized * distance;
+		Vector3 v = carObject.rigidbody.velocity * distance / 50.0f;
 		return carObject.transform.position + v;
 	}
 

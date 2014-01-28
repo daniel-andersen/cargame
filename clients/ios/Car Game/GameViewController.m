@@ -1,18 +1,18 @@
 //
-//  ViewController.m
+//  GameViewController.m
 //  Car Game
 //
-//  Created by Daniel Andersen on 17/01/14.
+//  Created by Daniel Andersen on 27/01/14.
 //  Copyright (c) 2014 Alexandra Instituttet. All rights reserved.
 //
 
 #import <CoreMotion/CoreMotion.h>
 
-#import "ViewController.h"
+#import "GameViewController.h"
 
 #define BACKWARDS_DIAMETER (M_PI / 8.0f)
 
-@interface ViewController () {
+@interface GameViewController () {
     Client *client;
     NSString *clientId;
     CMMotionManager *motionManager;
@@ -22,7 +22,7 @@
 
 @end
 
-@implementation ViewController
+@implementation GameViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -37,6 +37,10 @@
     connectionPollTimer = [NSTimer scheduledTimerWithTimeInterval:2.0f target:self selector:@selector(connectionPoll) userInfo:nil repeats:YES];
 }
 
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
 - (void)connectionPoll {
     @synchronized (self) {
         NSLog(@"Connection poll...");
@@ -44,15 +48,8 @@
             client = [[Client alloc] init];
             client.delegate = self;
         }
-        [client initConnection];
+        [client initConnectionWithIpAddress:self.ipAddress];
     }
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
 }
 
 - (void)connectionOpened {
@@ -76,7 +73,7 @@
 - (void)receivedMessage:(NSString *)message {
     message = [[message stringByReplacingOccurrencesOfString:@"\n" withString:@""] stringByReplacingOccurrencesOfString:@"\r" withString:@""];
     NSArray *messageArray = [message componentsSeparatedByString:@"|"];
-
+    
     if ([@"JOIN" isEqualToString:[messageArray objectAtIndex:0]]) {
         [self joined];
     }

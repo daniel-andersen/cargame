@@ -15,7 +15,7 @@
 		6508D86218895097001BFDC1 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D86118895097001BFDC1 /* AppDelegate.m */; };
 		6508D86518895097001BFDC1 /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6508D86318895097001BFDC1 /* Main_iPhone.storyboard */; };
 		6508D86818895097001BFDC1 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6508D86618895097001BFDC1 /* Main_iPad.storyboard */; };
-		6508D86B18895097001BFDC1 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D86A18895097001BFDC1 /* ViewController.m */; };
+		6508D86B18895097001BFDC1 /* EnterDetailsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D86A18895097001BFDC1 /* EnterDetailsViewController.m */; };
 		6508D86D18895097001BFDC1 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6508D86C18895097001BFDC1 /* Images.xcassets */; };
 		6508D87418895097001BFDC1 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6508D87318895097001BFDC1 /* XCTest.framework */; };
 		6508D87518895097001BFDC1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6508D85118895097001BFDC1 /* Foundation.framework */; };
@@ -24,6 +24,7 @@
 		6508D88018895097001BFDC1 /* Car_GameTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D87F18895097001BFDC1 /* Car_GameTests.m */; };
 		6508D88B188950CE001BFDC1 /* Client.m in Sources */ = {isa = PBXBuildFile; fileRef = 6508D88A188950CE001BFDC1 /* Client.m */; };
 		6508D88D1889649B001BFDC1 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6508D88C1889649B001BFDC1 /* CoreMotion.framework */; };
+		651158AE18968B5900BDD241 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 651158AD18968B5900BDD241 /* GameViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,8 +50,8 @@
 		6508D86118895097001BFDC1 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		6508D86418895097001BFDC1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
 		6508D86718895097001BFDC1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
-		6508D86918895097001BFDC1 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		6508D86A18895097001BFDC1 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		6508D86918895097001BFDC1 /* EnterDetailsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnterDetailsViewController.h; sourceTree = "<group>"; };
+		6508D86A18895097001BFDC1 /* EnterDetailsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnterDetailsViewController.m; sourceTree = "<group>"; };
 		6508D86C18895097001BFDC1 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		6508D87218895097001BFDC1 /* Car GameTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Car GameTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6508D87318895097001BFDC1 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -60,6 +61,8 @@
 		6508D889188950CE001BFDC1 /* Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Client.h; sourceTree = "<group>"; };
 		6508D88A188950CE001BFDC1 /* Client.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Client.m; sourceTree = "<group>"; };
 		6508D88C1889649B001BFDC1 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		651158AC18968B5900BDD241 /* GameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		651158AD18968B5900BDD241 /* GameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,12 +128,14 @@
 				6508D86118895097001BFDC1 /* AppDelegate.m */,
 				6508D86318895097001BFDC1 /* Main_iPhone.storyboard */,
 				6508D86618895097001BFDC1 /* Main_iPad.storyboard */,
-				6508D86918895097001BFDC1 /* ViewController.h */,
-				6508D86A18895097001BFDC1 /* ViewController.m */,
-				6508D86C18895097001BFDC1 /* Images.xcassets */,
-				6508D85818895097001BFDC1 /* Supporting Files */,
+				6508D86918895097001BFDC1 /* EnterDetailsViewController.h */,
+				6508D86A18895097001BFDC1 /* EnterDetailsViewController.m */,
+				651158AC18968B5900BDD241 /* GameViewController.h */,
+				651158AD18968B5900BDD241 /* GameViewController.m */,
 				6508D889188950CE001BFDC1 /* Client.h */,
 				6508D88A188950CE001BFDC1 /* Client.m */,
+				6508D86C18895097001BFDC1 /* Images.xcassets */,
+				6508D85818895097001BFDC1 /* Supporting Files */,
 			);
 			path = "Car Game";
 			sourceTree = "<group>";
@@ -262,7 +267,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6508D86B18895097001BFDC1 /* ViewController.m in Sources */,
+				651158AE18968B5900BDD241 /* GameViewController.m in Sources */,
+				6508D86B18895097001BFDC1 /* EnterDetailsViewController.m in Sources */,
 				6508D86218895097001BFDC1 /* AppDelegate.m in Sources */,
 				6508D88B188950CE001BFDC1 /* Client.m in Sources */,
 				6508D85E18895097001BFDC1 /* main.m in Sources */,

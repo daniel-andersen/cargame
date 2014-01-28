@@ -20,7 +20,7 @@
 
 @interface Client : NSObject <NSStreamDelegate>
 
-- (void)initConnection;
+- (void)initConnectionWithIpAddress:(NSString *)ipAddress;
 - (void)closeConnection;
 - (void)sendMessage:(NSString *)message;
 
