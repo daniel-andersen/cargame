@@ -265,16 +265,7 @@ public class CarMovement : MonoBehaviour {
 			closestAngle = destAngle;
 		}
 
-		float oldSteeringAngle = steeringAngle;
 		steeringAngle = Mathf.Min (MAX_STEERING_ANGLE, Mathf.Max (-MAX_STEERING_ANGLE, closestAngle - angle));
-
-		/*if (Mathf.Abs(oldSteeringAngle - steeringAngle) > MAX_STEERING_ANGLE_CHANGE) {
-			if (steeringAngle < oldSteeringAngle) {
-				steeringAngle = oldSteeringAngle - MAX_STEERING_ANGLE_CHANGE;
-			} else {
-				steeringAngle = oldSteeringAngle + MAX_STEERING_ANGLE_CHANGE;
-			}
-		}*/
 	}
 
 	private float accountForObstacles(float destAngle)

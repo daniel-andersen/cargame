@@ -119,12 +119,19 @@ public class Server : MonoBehaviour {
 			{
 				UserConnection client = new UserConnection(tcpListener.AcceptTcpClient());
 				client.LineReceived += new LineReceive(OnLineReceived);
+				client.ConnectionClosed += new ConnectionClose(OnConnectionClosed);
 				Debug.Log ("New client connection!");
 			}
 		} 
 		catch (Exception e) {
 			Debug.Log ("Exception while listening for connections: " + e.Message);
 		}
+	}
+
+	private void OnConnectionClosed(UserConnection sender)
+	{
+		Debug.Log ("User " + sender.Name + " disconnected!");
+		DisconnectUser (sender);
 	}
 
 	private void OnLineReceived(UserConnection sender, string data)

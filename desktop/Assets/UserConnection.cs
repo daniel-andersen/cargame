@@ -5,10 +5,11 @@ using System.IO;
 using UnityEngine;
 
 public delegate void LineReceive(UserConnection sender, string Data);
+public delegate void ConnectionClose(UserConnection sender);
 
 public class UserConnection
 {
-	const int READ_BUFFER_SIZE = 1024;
+	const int READ_BUFFER_SIZE = 2048;
 
 	private TcpClient client;
 	private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
@@ -31,7 +32,8 @@ public class UserConnection
 	}
 	
 	public event LineReceive LineReceived;
-	
+	public event ConnectionClose ConnectionClosed;
+
 	public void SendData(string Data)
 	{
 		lock (client.GetStream())
@@ -55,6 +57,8 @@ public class UserConnection
 			}
 			if (BytesRead == 0)
 			{
+				Debug.Log ("No more data from client");
+				disconnect();
 				return;
 			}
 			strMessage = Encoding.ASCII.GetString(readBuffer, 0, Mathf.Min (BytesRead - 1, READ_BUFFER_SIZE));
@@ -67,6 +71,17 @@ public class UserConnection
 		} 
 		catch (Exception e) {
 			Debug.Log("Exception while receiving data: " + e.Message);
+			disconnect();
 		}
+	}
+
+	public void disconnect()
+	{
+		if (client != null) {
+			client.GetStream ().Close ();
+			client.Close ();
+			client = null;
+		}
+		ConnectionClosed(this);
 	}
 }
