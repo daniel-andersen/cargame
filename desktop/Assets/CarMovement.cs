@@ -8,18 +8,21 @@ public class CarMovement : MonoBehaviour {
 
 	public int carId = 0;
 
+	public const int STUCK_DELAY = 3 * 1000;
+	public const float STUCK_RADIUS = 5.0f;
+
 	public static bool hasPlayerController = false;
 
-	private const float COMPUTER_FLAG_BURDEN = 0.1f;
-	private const float COMPUTER_VS_PLAYER_BURDEN = 0.2f;
+	private const float COMPUTER_FLAG_BURDEN = 0.0f;
+	private const float COMPUTER_VS_PLAYER_BURDEN = 0.3f;
 
 	private const float COLLISION_DISTANCE = 5.0f;
 
-	private const float OBSTACLE_LOOKAHEAD_DISTANCE = 30.0f;
+	private const float OBSTACLE_LOOKAHEAD_DISTANCE = 40.0f;
 	private const float OBSTACLE_BOUNCE_DAMPENING = 0.75f;
 
 	private const float TARGET_LOOK_AHEAD_DISTANCE = 30.0f;
-	private const float FLEE_LOOK_AHEAD_DISTANCE = 20.0f;
+	private const float FLEE_LOOK_AHEAD_DISTANCE = 5.0f;
 
 	private const float FLAG_CAPTURE_DISTANCE = 5.0f;
 
@@ -45,6 +48,9 @@ public class CarMovement : MonoBehaviour {
 
 	public int score = 0;
 
+	private Vector3 stuckPosition;
+	private int stuckStartTime;
+
 	// Use this for initialization
 	void Start () {
 		if (name.Equals ("Player 1")) {
@@ -59,15 +65,29 @@ public class CarMovement : MonoBehaviour {
 		if (name.Equals ("Player 4")) {
 			carId = 3;
 		}
+		stuckStartTime = System.Environment.TickCount;
+		stuckPosition = transform.position;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		updateStuck ();
 		updateControls ();
 		updateCar (Time.deltaTime);
 		clambCarToRoad ();
 		updateFlagOwnership ();
 		updateReachBase ();
+	}
+
+	private void updateStuck()
+	{
+		if (System.Environment.TickCount > stuckStartTime + STUCK_DELAY && Server.getUserWithCarId (carId) == null) {
+			if ((stuckPosition - transform.position).magnitude < STUCK_RADIUS) {
+				angularVelocity += Mathf.Sign (steeringAngle) * 10.0f;
+			}
+			stuckStartTime = System.Environment.TickCount;
+			stuckPosition = transform.position;
+		}
 	}
 
 	void OnTriggerEnter(Collider other) {
@@ -79,11 +99,28 @@ public class CarMovement : MonoBehaviour {
 		}
 	}
 
+	public static float AngleSigned(Vector3 v1, Vector3 v2, Vector3 n)
+	{
+		return Mathf.Atan2(
+			Vector3.Dot(n, Vector3.Cross(v1, v2)),
+			Vector3.Dot(v1, v2)) * Mathf.Rad2Deg;
+	}
+
+	void OnCollisionStay(Collision collision) {
+		if (collision.gameObject.name.StartsWith("Border") || collision.gameObject.name.StartsWith("ATrack Object")) {
+			float adjustedAngle = -angle + Mathf.PI / 2.0f;
+			Vector3 v = new Vector3 (Mathf.Cos (adjustedAngle), 0.0f, Mathf.Sin (adjustedAngle));
+
+			float a = AngleSigned(v.normalized, -collision.contacts[0].normal, new Vector3(0.0f, 1.0f, 0.0f));
+			if (Mathf.Abs (a) < 90.0f) {
+				angle -= Mathf.Sign (a) * 0.1f;
+			}
+		}
+	}
+
 	private void clambCarToRoad()
 	{
-		transform.position = new Vector3(Mathf.Min (Util.screenScaleX, Mathf.Max (-Util.screenScaleX, transform.position.x)),
-		                                 Mathf.Max (0.0f, transform.position.y),
-		                                 Mathf.Min (Util.screenScaleY, Mathf.Max (-Util.screenScaleY, transform.position.z)));
+		transform.position = new Vector3(transform.position.x, 0.0f, transform.position.z);
 	}
 
 	private void updateReachBase()
@@ -189,7 +226,14 @@ public class CarMovement : MonoBehaviour {
 
 		// Move towards base
 		GameObject baseObject = GameObject.Find ("Base");
-		evade -= evadeVector(transform.position, baseObject.transform.position, 128.0f);
+		evade -= evadeVectorSquare (transform.position, baseObject.transform.position, 128.0f);
+		evade -= evadeVectorAmbient (transform.position, baseObject.transform.position, 1.5f);
+
+		// Flee from borders
+		/*evade += evadeVectorSquare (transform.position, new Vector3 (-Util.screenScaleX,   transform.position.y, transform.position.z), 32.0f);
+		evade += evadeVectorSquare (transform.position, new Vector3 ( Util.screenScaleX,   transform.position.y, transform.position.z), 32.0f);
+		evade += evadeVectorSquare (transform.position, new Vector3 (transform.position.x, transform.position.y, -Util.screenScaleY  ), 32.0f);
+		evade += evadeVectorSquare (transform.position, new Vector3 (transform.position.x, transform.position.y,  Util.screenScaleY  ), 32.0f);*/
 
 		// Flee from enemies
 		for (int i = 0; i < 4; i++) {
@@ -212,6 +256,15 @@ public class CarMovement : MonoBehaviour {
 			return new Vector3(0.0f, 0.0f, 0.0f);
 		} else {
 			return delta.normalized * (distanceWeight / delta.magnitude);
+		}
+	}
+
+	private Vector3 evadeVectorAmbient (Vector3 position, Vector3 targetPosition, float weight) {
+		Vector3 delta = position - targetPosition;
+		if (delta.magnitude == 0.0f) {
+			return new Vector3(0.0f, 0.0f, 0.0f);
+		} else {
+			return delta.normalized * weight;
 		}
 	}
 
@@ -291,7 +344,7 @@ public class CarMovement : MonoBehaviour {
 			if (!obstacleScript.recognized) {
 				continue;
 			}
-			for (float d = 0.0f; d <= OBSTACLE_LOOKAHEAD_DISTANCE; d += OBSTACLE_LOOKAHEAD_DISTANCE / 8.0f) {
+			for (float d = 0.0f; d <= OBSTACLE_LOOKAHEAD_DISTANCE; d += OBSTACLE_LOOKAHEAD_DISTANCE / 16.0f) {
 				float adjustedAngle = -destAngle + Mathf.PI / 2.0f;
 
 				Vector3 destPosition = new Vector3 (transform.position.x + Mathf.Cos (adjustedAngle) * d,
@@ -299,7 +352,7 @@ public class CarMovement : MonoBehaviour {
 				                                    transform.position.z + Mathf.Sin (adjustedAngle) * d);
 
 				Vector3 delta = destPosition - obstacle.transform.position;
-				if (delta.magnitude < obstacle.transform.localScale.magnitude) {
+				if (delta.magnitude < 10.0f) {
 					return true;
 				}
 			}
@@ -469,7 +522,8 @@ public class CarMovement : MonoBehaviour {
 		accelWorldCoord.z = -sn * accel.y + cs * accel.x;
 
 		// Integrated velocity
-		rigidbody.velocity += accelWorldCoord * timeDelta;
+		//rigidbody.velocity += accelWorldCoord * timeDelta;
+		rigidbody.AddForce (accelWorldCoord * timeDelta * 10000.0f);
 
 		// --- Angular velocity and heading ---
 		

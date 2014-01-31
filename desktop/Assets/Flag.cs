@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Flag : MonoBehaviour {
 
-	public static int flagOwnershipCountMin = 100;
+	public static int flagOwnershipCountMin = 200;
 	public static int flagOwnershipCount = 0;
 	public static CarMovement flagOwner = null;
 
