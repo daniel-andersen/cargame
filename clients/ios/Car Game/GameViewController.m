@@ -114,7 +114,7 @@
 }
 
 - (float)calculateSteeringAngle {
-    return motionManager.deviceMotion.attitude.pitch * 0.8f;
+    return motionManager.deviceMotion.attitude.pitch * 0.5f;
 }
 
 - (float)calculateThrottle {
@@ -147,9 +147,9 @@
     exit(0);
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+- (void)touchesBegan:(NSSet *)t withEvent:(UIEvent *)event {
     viewPressed = YES;
-    touches = [touches allObjects];
+    touches = [t allObjects];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
